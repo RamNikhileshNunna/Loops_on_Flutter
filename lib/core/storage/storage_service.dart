@@ -1,0 +1,23 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+final storageServiceProvider = Provider<StorageService>((ref) {
+  throw UnimplementedError('StorageService not initialized');
+});
+
+class StorageService {
+  final SharedPreferences _prefs;
+
+  StorageService(this._prefs);
+
+  static const String keyToken = 'app.token';
+  static const String keyInstance = 'app.instance';
+
+  String? getToken() => _prefs.getString(keyToken);
+  Future<void> setToken(String token) => _prefs.setString(keyToken, token);
+  Future<void> clearToken() => _prefs.remove(keyToken);
+
+  String? getInstance() => _prefs.getString(keyInstance);
+  Future<void> setInstance(String instance) =>
+      _prefs.setString(keyInstance, instance);
+}
