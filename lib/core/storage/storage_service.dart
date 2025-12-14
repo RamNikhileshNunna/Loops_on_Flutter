@@ -12,12 +12,15 @@ class StorageService {
 
   static const String keyToken = 'app.token';
   static const String keyInstance = 'app.instance';
+  static const String keyLoggedIn = 'app.logged_in';
 
   String? getToken() => _prefs.getString(keyToken);
   Future<void> setToken(String token) => _prefs.setString(keyToken, token);
   Future<void> clearToken() => _prefs.remove(keyToken);
 
   String? getInstance() => _prefs.getString(keyInstance);
-  Future<void> setInstance(String instance) =>
-      _prefs.setString(keyInstance, instance);
+  Future<void> setInstance(String instance) => _prefs.setString(keyInstance, instance);
+
+  bool getLoggedIn() => _prefs.getBool(keyLoggedIn) ?? false;
+  Future<void> setLoggedIn(bool v) => _prefs.setBool(keyLoggedIn, v);
 }

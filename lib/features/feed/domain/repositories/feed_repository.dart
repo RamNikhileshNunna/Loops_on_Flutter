@@ -1,6 +1,6 @@
-import 'package:loops_flutter/features/feed/domain/models/video_model.dart';
+import 'package:loops_flutter/features/feed/domain/models/feed_page.dart';
 
 abstract class FeedRepository {
-  Future<List<VideoModel>> getForYouFeed({String? cursor});
-  Future<List<VideoModel>> getFollowingFeed({String? cursor});
+  Future<FeedPage> getForYouFeed({String? cursor});
+  Future<FeedPage> getFollowingFeed({String? cursor});
 }

@@ -1,35 +1,74 @@
+import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:loops_flutter/features/feed/domain/models/video_model.dart';
+
 import 'package:loops_flutter/features/feed/data/repositories/feed_repository_impl.dart';
+import 'package:loops_flutter/features/feed/domain/models/feed_page.dart';
+import 'package:loops_flutter/features/feed/domain/models/video_model.dart';
 
 part 'feed_controller.g.dart';
 
 @riverpod
 class FeedController extends _$FeedController {
+  String? _nextCursor;
+  bool _isLoadingMore = false;
+  bool _hasMore = true;
+
   @override
   FutureOr<List<VideoModel>> build() async {
-    return _fetchFeed();
+    final page = await _fetchPage();
+    _setCursor(page);
+    return page.videos;
   }
 
-  Future<List<VideoModel>> _fetchFeed({String? cursor}) async {
+  Future<FeedPage> _fetchPage({String? cursor}) async {
     final repository = ref.read(feedRepositoryProvider);
     return repository.getForYouFeed(cursor: cursor);
   }
 
-  Future<void> loadMore() async {
-    final currentState = state.value;
-    if (currentState == null) return;
+  void _setCursor(FeedPage page) {
+    _nextCursor = page.nextCursor;
+    _hasMore = _nextCursor != null && _nextCursor!.isNotEmpty;
+  }
 
-    // Logic to get cursor from last item or meta (simplified here)
-    // Assuming the repo/API handles pagination via cursor.
-    // loops-expo uses `meta.next_cursor`. Our VideoModel doesn't currently wrap the list in a response object
-    // that holds the cursor. We might need to adjust Repository to return a wrapper or handle cursor state here.
-    // For now, let's just re-fetch or assume infinite scroll needs adjustment.
-    // Stub for now.
+  Future<void> loadMore() async {
+    if (_isLoadingMore || !_hasMore) return;
+
+    final current = state.asData?.value ?? const <VideoModel>[];
+    final cursor = _nextCursor;
+    if (cursor == null || cursor.isEmpty) {
+      _hasMore = false;
+      return;
+    }
+
+    _isLoadingMore = true;
+    try {
+      final page = await _fetchPage(cursor: cursor);
+      _setCursor(page);
+
+      final existingIds = current.map((e) => e.id).toSet();
+      final merged = <VideoModel>[
+        ...current,
+        ...page.videos.where((v) => !existingIds.contains(v.id)),
+      ];
+
+      state = AsyncValue.data(merged);
+    } catch (e, st) {
+      // Don't break the feed UI if pagination fails; keep the existing list.
+      if (kDebugMode) {
+        debugPrint('Feed loadMore failed: $e');
+        debugPrintStack(stackTrace: st);
+      }
+    } finally {
+      _isLoadingMore = false;
+    }
   }
 
   Future<void> refresh() async {
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => _fetchFeed());
+    state = await AsyncValue.guard(() async {
+      final page = await _fetchPage();
+      _setCursor(page);
+      return page.videos;
+    });
   }
 }

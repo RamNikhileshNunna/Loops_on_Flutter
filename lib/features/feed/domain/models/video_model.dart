@@ -1,6 +1,8 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:loops_flutter/features/profile/domain/models/user_model.dart';
 
+// ignore_for_file: invalid_annotation_target
+
 part 'video_model.freezed.dart';
 part 'video_model.g.dart';
 

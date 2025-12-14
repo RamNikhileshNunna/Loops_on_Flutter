@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../controllers/feed_controller.dart';
 import '../widgets/video_player_widget.dart';
 
@@ -30,13 +31,18 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
               ),
             );
           }
+
           return PageView.builder(
             controller: _pageController,
             scrollDirection: Axis.vertical,
             itemCount: videos.length,
             onPageChanged: (index) {
               setState(() => _currentIndex = index);
-              // Load more if near end
+
+              // Pre-fetch next page a couple items before the end.
+              if (index >= videos.length - 3) {
+                ref.read(feedControllerProvider.notifier).loadMore();
+              }
             },
             itemBuilder: (context, index) {
               return VideoPlayerWidget(
@@ -52,8 +58,9 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
             style: const TextStyle(color: Colors.white),
           ),
         ),
-        loading: () =>
-            const Center(child: CircularProgressIndicator(color: Colors.white)),
+        loading: () => const Center(
+          child: CircularProgressIndicator(color: Colors.white),
+        ),
       ),
     );
   }
