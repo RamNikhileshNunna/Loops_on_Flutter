@@ -1,14 +1,33 @@
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import 'package:loops_flutter/features/feed/data/repositories/feed_repository_impl.dart';
+import 'package:loops_flutter/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:loops_flutter/features/feed/domain/models/feed_page.dart';
 import 'package:loops_flutter/features/feed/domain/models/video_model.dart';
+import 'package:loops_flutter/features/profile/data/repositories/profile_repository_impl.dart';
+import 'package:loops_flutter/features/profile/domain/models/user_model.dart';
 
-part 'feed_controller.g.dart';
+part 'profile_videos_controller.g.dart';
 
 @riverpod
-class FeedController extends _$FeedController {
+class CurrentUserController extends _$CurrentUserController {
+  @override
+  FutureOr<UserModel?> build() async {
+    final authRepo = ref.read(authRepositoryProvider);
+    return authRepo.getCurrentUser();
+  }
+
+  Future<void> refresh() async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      final authRepo = ref.read(authRepositoryProvider);
+      return authRepo.getCurrentUser();
+    });
+  }
+}
+
+@riverpod
+class MyVideosController extends _$MyVideosController {
   String? _nextCursor;
   bool _isLoadingMore = false;
   bool _hasMore = true;
@@ -21,8 +40,8 @@ class FeedController extends _$FeedController {
   }
 
   Future<FeedPage> _fetchPage({String? cursor}) async {
-    final repository = ref.read(feedRepositoryProvider);
-    return repository.getForYouFeed(cursor: cursor);
+    final repo = ref.read(profileRepositoryProvider);
+    return repo.getMyVideos(cursor: cursor);
   }
 
   void _setCursor(FeedPage page) {
@@ -53,9 +72,9 @@ class FeedController extends _$FeedController {
 
       state = AsyncValue.data(merged);
     } catch (e, st) {
-      // Don't break the feed UI if pagination fails; keep the existing list.
+      // Don't break the UI if pagination fails; keep the existing list.
       if (kDebugMode) {
-        debugPrint('Feed loadMore failed: $e');
+        debugPrint('MyVideos loadMore failed: $e');
         debugPrintStack(stackTrace: st);
       }
     } finally {
@@ -74,7 +93,7 @@ class FeedController extends _$FeedController {
 }
 
 @riverpod
-class FollowingFeedController extends _$FollowingFeedController {
+class MyLikedVideosController extends _$MyLikedVideosController {
   String? _nextCursor;
   bool _isLoadingMore = false;
   bool _hasMore = true;
@@ -87,8 +106,8 @@ class FollowingFeedController extends _$FollowingFeedController {
   }
 
   Future<FeedPage> _fetchPage({String? cursor}) async {
-    final repository = ref.read(feedRepositoryProvider);
-    return repository.getFollowingFeed(cursor: cursor);
+    final repo = ref.read(profileRepositoryProvider);
+    return repo.getMyLikedVideos(cursor: cursor);
   }
 
   void _setCursor(FeedPage page) {
@@ -119,8 +138,9 @@ class FollowingFeedController extends _$FollowingFeedController {
 
       state = AsyncValue.data(merged);
     } catch (e, st) {
+      // Don't break the UI if pagination fails; keep the existing list.
       if (kDebugMode) {
-        debugPrint('Following feed loadMore failed: $e');
+        debugPrint('MyLikedVideos loadMore failed: $e');
         debugPrintStack(stackTrace: st);
       }
     } finally {

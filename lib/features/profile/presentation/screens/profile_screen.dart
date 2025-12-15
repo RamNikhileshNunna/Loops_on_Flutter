@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../controllers/profile_content_controllers.dart';
+import '../../../settings/presentation/screens/settings_screen.dart';
 import '../widgets/profile_widgets.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -43,6 +44,27 @@ class ProfileScreen extends ConsumerWidget {
             child: Column(
               children: [
                 ProfileHeader(user: user),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.black,
+                        side: const BorderSide(color: Colors.black12),
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const SettingsScreen(),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.settings, size: 18),
+                      label: const Text('Settings'),
+                    ),
+                  ),
+                ),
                 const Divider(height: 1),
                 const TabBar(
                   labelColor: Colors.black,

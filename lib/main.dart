@@ -6,6 +6,8 @@ import 'core/theme/app_theme.dart';
 import 'package:go_router/go_router.dart';
 import 'features/feed/presentation/screens/feed_screen.dart';
 import 'features/profile/presentation/screens/profile_screen.dart';
+import 'features/explore/presentation/screens/explore_screen.dart';
+import 'features/activity/presentation/screens/activity_screen.dart';
 import 'features/auth/presentation/screens/login_screen.dart';
 import 'features/auth/data/repositories/auth_repository_impl.dart';
 
@@ -14,6 +16,15 @@ class MainScreen extends StatelessWidget {
   final Widget child;
   @override
   Widget build(BuildContext context) {
+    final location = GoRouterState.of(context).uri.toString();
+    int currentIndex = 0;
+    if (location.startsWith('/explore')) {
+      currentIndex = 1;
+    } else if (location.startsWith('/activity')) {
+      currentIndex = 2;
+    } else if (location.startsWith('/profile')) {
+      currentIndex = 3;
+    }
     return Scaffold(
       body: child,
       bottomNavigationBar: BottomNavigationBar(
@@ -21,13 +32,28 @@ class MainScreen extends StatelessWidget {
         selectedItemColor: Colors.white,
         unselectedItemColor: Colors.grey,
         type: BottomNavigationBarType.fixed,
+        currentIndex: currentIndex,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.explore), label: 'Explore'),
+          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Activity'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
         onTap: (index) {
-          if (index == 0) context.go('/');
-          if (index == 1) context.go('/profile');
+          switch (index) {
+            case 0:
+              context.go('/');
+              break;
+            case 1:
+              context.go('/explore');
+              break;
+            case 2:
+              context.go('/activity');
+              break;
+            case 3:
+              context.go('/profile');
+              break;
+          }
         },
       ),
     );
@@ -73,6 +99,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state, child) => MainScreen(child: child),
         routes: [
           GoRoute(path: '/', builder: (context, state) => const FeedScreen()),
+          GoRoute(path: '/explore', builder: (context, state) => const ExploreScreen()),
+          GoRoute(path: '/activity', builder: (context, state) => const ActivityScreen()),
           GoRoute(
             path: '/profile',
             builder: (context, state) => const ProfileScreen(),
