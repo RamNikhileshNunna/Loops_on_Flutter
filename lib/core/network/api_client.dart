@@ -197,4 +197,14 @@ class ApiClient {
       options: Options(headers: headers),
     );
   }
+
+  /// Clears all cookies (session + XSRF) to avoid stale auth after logout/login.
+  Future<void> clearCookies() async {
+    try {
+      await _cookieJar.deleteAll();
+      debugPrint('Cleared cookies');
+    } catch (e) {
+      debugPrint('Failed to clear cookies: $e');
+    }
+  }
 }

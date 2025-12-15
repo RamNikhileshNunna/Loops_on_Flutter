@@ -61,6 +61,9 @@ class AuthRepositoryImpl implements AuthRepository {
 
     _needs2fa = false;
 
+    // Clear any stale cookies before starting new session.
+    await _apiClient.clearCookies();
+
     // Sanctum CSRF cookie + session login.
     await _apiClient.ensureCsrfCookie();
 
@@ -139,6 +142,6 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<void> logout() async {
     await _storage.clearToken();
     await _storage.setLoggedIn(false);
-    // Note: cookies are in-memory; restarting app clears them.
+    await _apiClient.clearCookies();
   }
 }

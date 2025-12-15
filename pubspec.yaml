@@ -52,6 +52,8 @@ dependencies:
   flutter_web_auth_2: ^4.1.0
   webview_flutter: ^4.13.0
   path_provider: ^2.1.4
+  image_picker: ^1.0.7
+  http_parser: ^4.0.2
 
 dev_dependencies:
   flutter_test:

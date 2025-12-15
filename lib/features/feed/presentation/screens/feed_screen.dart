@@ -169,30 +169,58 @@ class _FeedScreenState extends ConsumerState<FeedScreen>
               );
             },
           ),
-          // Floating tab toggle
+          // Top overlay with tabs similar to Reels
           Positioned(
-            top: 32,
+            top: 0,
             left: 0,
             right: 0,
-            child: Center(
+            child: SafeArea(
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
-                  color: Colors.black54,
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                child: TabBar(
-                  controller: _tabController,
-                  indicator: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.black.withValues(alpha: 0.7),
+                      Colors.transparent,
+                    ],
                   ),
-                  indicatorSize: TabBarIndicatorSize.tab,
-                  labelColor: Colors.black,
-                  unselectedLabelColor: Colors.white,
-                  tabs: const [
-                    Tab(text: 'For You'),
-                    Tab(text: 'Following'),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.video_collection_outlined, color: Colors.white),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: TabBar(
+                        controller: _tabController,
+                        indicator: const UnderlineTabIndicator(
+                          borderSide: BorderSide(color: Colors.white, width: 3),
+                          insets: EdgeInsets.symmetric(horizontal: 18),
+                        ),
+                        indicatorSize: TabBarIndicatorSize.label,
+                        labelColor: Colors.white,
+                        unselectedLabelColor: Colors.white70,
+                        labelStyle: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 16,
+                        ),
+                        tabs: const [
+                          Tab(text: 'For You'),
+                          Tab(text: 'Following'),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        if (_tabController.index == 0) {
+                          _forYouNotifier().refresh();
+                        } else {
+                          _followingNotifier().refresh();
+                        }
+                      },
+                      icon: const Icon(Icons.refresh, color: Colors.white),
+                    ),
                   ],
                 ),
               ),
