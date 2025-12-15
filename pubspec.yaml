@@ -51,6 +51,7 @@ dependencies:
   hooks_riverpod: ^3.0.3
   flutter_web_auth_2: ^4.1.0
   webview_flutter: ^4.13.0
+  path_provider: ^2.1.4
 
 dev_dependencies:
   flutter_test:

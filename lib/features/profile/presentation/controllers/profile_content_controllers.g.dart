@@ -80,7 +80,7 @@ final class MyVideosControllerProvider
 }
 
 String _$myVideosControllerHash() =>
-    r'47cbe9ef35de0ba5b1b911173a035576e89ded41';
+    r'8216b117f9ff4dd695ca8414725162050effd660';
 
 abstract class _$MyVideosController extends $AsyncNotifier<List<VideoModel>> {
   FutureOr<List<VideoModel>> build();
@@ -127,7 +127,7 @@ final class MyLikedVideosControllerProvider
 }
 
 String _$myLikedVideosControllerHash() =>
-    r'e6cfd9c6a3279f9d1adf158a124f1a29c57c20d0';
+    r'6320851d5c1b0e304f12dc37c4c6519648142906';
 
 abstract class _$MyLikedVideosController
     extends $AsyncNotifier<List<VideoModel>> {

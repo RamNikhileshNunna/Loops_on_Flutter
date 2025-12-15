@@ -33,7 +33,7 @@ final class FeedControllerProvider
   FeedController create() => FeedController();
 }
 
-String _$feedControllerHash() => r'1488c0e59b0f4badf950b4cdfdc0c72918d6f772';
+String _$feedControllerHash() => r'e6466e91623e504aa0aaec85927df4763c086ac6';
 
 abstract class _$FeedController extends $AsyncNotifier<List<VideoModel>> {
   FutureOr<List<VideoModel>> build();

@@ -82,7 +82,11 @@ class _VideosTab extends ConsumerWidget {
     final state = ref.watch(myVideosControllerProvider);
 
     return state.when(
-      data: (videos) => ProfileVideoGrid(videos: videos, emptyText: 'No videos posted yet'),
+      data: (videos) => ProfileVideoGrid(
+        videos: videos,
+        emptyText: 'No videos posted yet',
+        isMyVideos: true,
+      ),
       error: (err, stack) => Center(
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -106,7 +110,11 @@ class _LikesTab extends ConsumerWidget {
     final state = ref.watch(myLikedVideosControllerProvider);
 
     return state.when(
-      data: (videos) => ProfileVideoGrid(videos: videos, emptyText: 'No liked videos yet'),
+      data: (videos) => ProfileVideoGrid(
+        videos: videos,
+        emptyText: 'No liked videos yet',
+        isMyVideos: false,
+      ),
       error: (err, stack) => Center(
         child: Padding(
           padding: const EdgeInsets.all(16),

@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'features/feed/presentation/screens/feed_screen.dart';
 import 'features/profile/presentation/screens/profile_screen.dart';
 import 'features/auth/presentation/screens/login_screen.dart';
+import 'features/auth/data/repositories/auth_repository_impl.dart';
 
 class MainScreen extends StatelessWidget {
   const MainScreen({super.key, required this.child});
@@ -50,6 +51,23 @@ Future<void> main() async {
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/',
+    redirect: (context, state) async {
+      final authRepo = ref.read(authRepositoryProvider);
+      final isAuthenticated = await authRepo.isAuthenticated();
+      final isLoginPage = state.matchedLocation == '/login';
+      
+      // If not authenticated and not on login page, redirect to login
+      if (!isAuthenticated && !isLoginPage) {
+        return '/login';
+      }
+      
+      // If authenticated and on login page, redirect to home
+      if (isAuthenticated && isLoginPage) {
+        return '/';
+      }
+      
+      return null; // No redirect needed
+    },
     routes: [
       ShellRoute(
         builder: (context, state, child) => MainScreen(child: child),

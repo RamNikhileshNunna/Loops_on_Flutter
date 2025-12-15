@@ -3,6 +3,8 @@ import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io' show Directory, File, Platform;
 
 import '../storage/storage_service.dart';
 
@@ -14,19 +16,18 @@ final apiClientProvider = Provider<ApiClient>((ref) {
 class ApiClient {
   final StorageService _storage;
   final Dio _dio;
-  final CookieJar _cookieJar;
+  CookieJar _cookieJar;
 
-  ApiClient(this._storage)
-      : _cookieJar = CookieJar(),
-        _dio = Dio(
-          BaseOptions(
-            connectTimeout: const Duration(seconds: 15),
-            receiveTimeout: const Duration(seconds: 15),
-            followRedirects: true,
-            // Let us inspect 4xx responses cleanly.
-            validateStatus: (code) => code != null && code >= 200 && code < 500,
-          ),
-        ) {
+  ApiClient(this._storage) : _cookieJar = DefaultCookieJar(),
+      _dio = Dio(
+      BaseOptions(
+        connectTimeout: const Duration(seconds: 15),
+        receiveTimeout: const Duration(seconds: 15),
+        followRedirects: true,
+        validateStatus: (code) => code != null && code >= 200 && code < 500,
+      ),
+    ) {
+    _initCookieJar();
     _dio.interceptors.add(CookieManager(_cookieJar));
 
     if (kDebugMode) {
@@ -46,16 +47,23 @@ class ApiClient {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
-          final cookies = await _cookieJar.loadForRequest(options.uri);
-          Cookie? xsrf;
-          for (final c in cookies) {
-            if (c.name == 'XSRF-TOKEN') {
-              xsrf = c;
-              break;
+          try {
+            final cookies = await _cookieJar.loadForRequest(options.uri);
+            Cookie? xsrf;
+            for (final c in cookies) {
+              if (c.name == 'XSRF-TOKEN') {
+                xsrf = c;
+                break;
+              }
             }
-          }
-          if (xsrf != null) {
-            options.headers['X-XSRF-TOKEN'] = Uri.decodeComponent(xsrf.value);
+            if (xsrf != null) {
+              options.headers['X-XSRF-TOKEN'] = Uri.decodeComponent(xsrf.value);
+              debugPrint('Added XSRF-TOKEN header: ${xsrf.value.substring(0, xsrf.value.length > 20 ? 20 : xsrf.value.length)}...');
+            } else {
+              debugPrint('No XSRF-TOKEN cookie found for ${options.uri}');
+            }
+          } catch (e) {
+            debugPrint('Error loading cookies for XSRF: $e');
           }
           handler.next(options);
         },
@@ -91,14 +99,76 @@ class ApiClient {
     };
   }
 
+  void _initCookieJar() {
+    // Start with in-memory cookie jar (works everywhere, no file system needed)
+    // Try to upgrade to persistent storage in the background
+    // Only on platforms that support it (not web, and only if we can write)
+    if (!kIsWeb && (Platform.isAndroid || Platform.isIOS || Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+      getApplicationDocumentsDirectory().then((appDocDir) {
+        try {
+          // Test if we can write to this directory
+          final testFile = File('${appDocDir.path}/.cookie_test');
+          try {
+            testFile.writeAsStringSync('test');
+            testFile.deleteSync();
+            
+            // If we can write, create the cookie directory
+            final cookieDir = Directory('${appDocDir.path}/cookies');
+            if (!cookieDir.existsSync()) {
+              cookieDir.createSync(recursive: true);
+            }
+            // Create new persistent jar and migrate cookies if needed
+            final newJar = PersistCookieJar(
+              storage: FileStorage(cookieDir.path),
+            );
+            // Note: We can't easily migrate cookies from DefaultCookieJar to PersistCookieJar
+            // So we'll just switch to persistent for future requests
+            _cookieJar = newJar;
+            // Update the CookieManager to use the new jar
+            _dio.interceptors.removeWhere((interceptor) => interceptor is CookieManager);
+            _dio.interceptors.insert(0, CookieManager(_cookieJar));
+            debugPrint('Upgraded to persistent cookie jar at: ${cookieDir.path}');
+          } catch (e) {
+            // Can't write to directory, keep using in-memory
+            debugPrint('Cannot write to directory, using in-memory cookies: $e');
+          }
+        } catch (e) {
+          // If directory creation fails, keep using in-memory
+          debugPrint('Failed to create cookie directory: $e');
+        }
+      }).catchError((e) {
+        // Keep using in-memory if file system access fails
+        debugPrint('Failed to initialize persistent cookie jar: $e');
+      });
+    } else {
+      debugPrint('Using in-memory cookie jar (web or unsupported platform)');
+    }
+  }
+
   bool _isAbsolute(String s) => s.startsWith('http://') || s.startsWith('https://');
 
   Future<void> ensureCsrfCookie() async {
     final baseUrl = _getBaseUrl();
     await _dio.get(
       '$baseUrl/sanctum/csrf-cookie',
-      options: Options(headers: await _getHeaders()),
+      options: Options(
+        headers: await _getHeaders(),
+        followRedirects: true,
+      ),
     );
+    
+    // Verify CSRF cookie was received (debug only)
+    if (kDebugMode) {
+      try {
+        final cookies = await _cookieJar.loadForRequest(Uri.parse(baseUrl));
+        final xsrfCookie = cookies.firstWhere(
+          (c) => c.name == 'XSRF-TOKEN',
+        );
+        debugPrint('CSRF cookie received: ${xsrfCookie.name}=${xsrfCookie.value.substring(0, xsrfCookie.value.length > 20 ? 20 : xsrfCookie.value.length)}...');
+      } catch (e) {
+        debugPrint('Warning: XSRF-TOKEN cookie not found after ensureCsrfCookie: $e');
+      }
+    }
   }
 
   Future<Response> get(

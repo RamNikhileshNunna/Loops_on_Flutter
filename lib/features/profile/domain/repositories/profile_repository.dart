@@ -1,6 +1,6 @@
-import 'package:loops_flutter/features/feed/domain/models/video_model.dart';
+import 'package:loops_flutter/features/feed/domain/models/feed_page.dart';
 
 abstract class ProfileRepository {
-  Future<List<VideoModel>> getMyVideos({String? cursor});
-  Future<List<VideoModel>> getMyLikedVideos({String? cursor});
+  Future<FeedPage> getMyVideos({String? cursor});
+  Future<FeedPage> getMyLikedVideos({String? cursor});
 }

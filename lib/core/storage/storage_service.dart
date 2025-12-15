@@ -1,8 +1,19 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+// Provide SharedPreferences instance asynchronously
+final sharedPreferencesProvider = FutureProvider<SharedPreferences>((ref) async {
+  return await SharedPreferences.getInstance();
+});
+
+// StorageService depends on the initialized SharedPreferences
 final storageServiceProvider = Provider<StorageService>((ref) {
-  throw UnimplementedError('StorageService not initialized');
+  final prefsAsync = ref.watch(sharedPreferencesProvider);
+  return prefsAsync.when(
+    data: (prefs) => StorageService(prefs),
+    loading: () => throw UnimplementedError('SharedPreferences loading'),
+    error: (e, _) => throw UnimplementedError('SharedPreferences error: $e'),
+  );
 });
 
 class StorageService {
