@@ -1,5 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:loops_flutter/core/storage/storage_service.dart';
 import 'package:loops_flutter/features/feed/domain/models/video_model.dart';
 import 'package:loops_flutter/features/profile/domain/models/user_model.dart';
 import 'package:loops_flutter/features/profile/presentation/screens/profile_video_viewer_screen.dart';
@@ -150,26 +152,28 @@ class ProfileVideoGrid extends StatelessWidget {
   }
 }
 
-class _VideoTile extends StatelessWidget {
+class _VideoTile extends ConsumerWidget {
   const _VideoTile({required this.video});
 
   final VideoModel video;
 
-  String? _getThumbnailUrl() {
-    // Try to get thumbnail from video URL - some APIs provide thumbnails
-    // For now, we'll use the video URL itself and let the image widget handle it
-    // In a real implementation, you might have a separate thumbnail_url field
-    
-    // Some video hosting services provide thumbnail endpoints
-    // For loops.video, we might need to check the API response for a thumbnail field
-    // For now, return null to use a placeholder
-    return null;
+  String? _ensureAbsolute(String? url, StorageService storage) {
+    if (url == null || url.isEmpty) return null;
+    if (url.startsWith('http://') || url.startsWith('https://')) return url;
+
+    final instance = storage.getInstance();
+    if (instance == null || instance.isEmpty) return url;
+
+    // Normalize leading slash to avoid double slashes.
+    final normalized = url.startsWith('/') ? url.substring(1) : url;
+    return 'https://$instance/$normalized';
   }
 
   @override
-  Widget build(BuildContext context) {
-    final thumbnailUrl = _getThumbnailUrl();
-    
+  Widget build(BuildContext context, WidgetRef ref) {
+    final storage = ref.read(storageServiceProvider);
+    final thumbnailUrl = _ensureAbsolute(video.media.thumbnailUrl, storage);
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
       child: Stack(

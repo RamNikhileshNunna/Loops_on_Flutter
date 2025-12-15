@@ -403,7 +403,7 @@ $VideoMetaCopyWith<$Res>? get meta {
 /// @nodoc
 mixin _$MediaModel {
 
-@JsonKey(name: 'src_url') String get srcUrl;@JsonKey(name: 'alt_text') String? get altText;
+@JsonKey(name: 'src_url', readValue: _readSrcUrl) String get srcUrl;@JsonKey(name: 'thumbnail_url', readValue: _readThumbnailUrl) String? get thumbnailUrl;@JsonKey(name: 'alt_text') String? get altText;
 /// Create a copy of MediaModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -416,16 +416,16 @@ $MediaModelCopyWith<MediaModel> get copyWith => _$MediaModelCopyWithImpl<MediaMo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is MediaModel&&(identical(other.srcUrl, srcUrl) || other.srcUrl == srcUrl)&&(identical(other.altText, altText) || other.altText == altText));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MediaModel&&(identical(other.srcUrl, srcUrl) || other.srcUrl == srcUrl)&&(identical(other.thumbnailUrl, thumbnailUrl) || other.thumbnailUrl == thumbnailUrl)&&(identical(other.altText, altText) || other.altText == altText));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,srcUrl,altText);
+int get hashCode => Object.hash(runtimeType,srcUrl,thumbnailUrl,altText);
 
 @override
 String toString() {
-  return 'MediaModel(srcUrl: $srcUrl, altText: $altText)';
+  return 'MediaModel(srcUrl: $srcUrl, thumbnailUrl: $thumbnailUrl, altText: $altText)';
 }
 
 
@@ -436,7 +436,7 @@ abstract mixin class $MediaModelCopyWith<$Res>  {
   factory $MediaModelCopyWith(MediaModel value, $Res Function(MediaModel) _then) = _$MediaModelCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'src_url') String srcUrl,@JsonKey(name: 'alt_text') String? altText
+@JsonKey(name: 'src_url', readValue: _readSrcUrl) String srcUrl,@JsonKey(name: 'thumbnail_url', readValue: _readThumbnailUrl) String? thumbnailUrl,@JsonKey(name: 'alt_text') String? altText
 });
 
 
@@ -453,10 +453,11 @@ class _$MediaModelCopyWithImpl<$Res>
 
 /// Create a copy of MediaModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? srcUrl = null,Object? altText = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? srcUrl = null,Object? thumbnailUrl = freezed,Object? altText = freezed,}) {
   return _then(_self.copyWith(
 srcUrl: null == srcUrl ? _self.srcUrl : srcUrl // ignore: cast_nullable_to_non_nullable
-as String,altText: freezed == altText ? _self.altText : altText // ignore: cast_nullable_to_non_nullable
+as String,thumbnailUrl: freezed == thumbnailUrl ? _self.thumbnailUrl : thumbnailUrl // ignore: cast_nullable_to_non_nullable
+as String?,altText: freezed == altText ? _self.altText : altText // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -542,10 +543,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'src_url')  String srcUrl, @JsonKey(name: 'alt_text')  String? altText)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'src_url', readValue: _readSrcUrl)  String srcUrl, @JsonKey(name: 'thumbnail_url', readValue: _readThumbnailUrl)  String? thumbnailUrl, @JsonKey(name: 'alt_text')  String? altText)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _MediaModel() when $default != null:
-return $default(_that.srcUrl,_that.altText);case _:
+return $default(_that.srcUrl,_that.thumbnailUrl,_that.altText);case _:
   return orElse();
 
 }
@@ -563,10 +564,10 @@ return $default(_that.srcUrl,_that.altText);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'src_url')  String srcUrl, @JsonKey(name: 'alt_text')  String? altText)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'src_url', readValue: _readSrcUrl)  String srcUrl, @JsonKey(name: 'thumbnail_url', readValue: _readThumbnailUrl)  String? thumbnailUrl, @JsonKey(name: 'alt_text')  String? altText)  $default,) {final _that = this;
 switch (_that) {
 case _MediaModel():
-return $default(_that.srcUrl,_that.altText);case _:
+return $default(_that.srcUrl,_that.thumbnailUrl,_that.altText);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -583,10 +584,10 @@ return $default(_that.srcUrl,_that.altText);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'src_url')  String srcUrl, @JsonKey(name: 'alt_text')  String? altText)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'src_url', readValue: _readSrcUrl)  String srcUrl, @JsonKey(name: 'thumbnail_url', readValue: _readThumbnailUrl)  String? thumbnailUrl, @JsonKey(name: 'alt_text')  String? altText)?  $default,) {final _that = this;
 switch (_that) {
 case _MediaModel() when $default != null:
-return $default(_that.srcUrl,_that.altText);case _:
+return $default(_that.srcUrl,_that.thumbnailUrl,_that.altText);case _:
   return null;
 
 }
@@ -598,10 +599,11 @@ return $default(_that.srcUrl,_that.altText);case _:
 @JsonSerializable()
 
 class _MediaModel implements MediaModel {
-  const _MediaModel({@JsonKey(name: 'src_url') required this.srcUrl, @JsonKey(name: 'alt_text') this.altText});
+  const _MediaModel({@JsonKey(name: 'src_url', readValue: _readSrcUrl) required this.srcUrl, @JsonKey(name: 'thumbnail_url', readValue: _readThumbnailUrl) this.thumbnailUrl, @JsonKey(name: 'alt_text') this.altText});
   factory _MediaModel.fromJson(Map<String, dynamic> json) => _$MediaModelFromJson(json);
 
-@override@JsonKey(name: 'src_url') final  String srcUrl;
+@override@JsonKey(name: 'src_url', readValue: _readSrcUrl) final  String srcUrl;
+@override@JsonKey(name: 'thumbnail_url', readValue: _readThumbnailUrl) final  String? thumbnailUrl;
 @override@JsonKey(name: 'alt_text') final  String? altText;
 
 /// Create a copy of MediaModel
@@ -617,16 +619,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MediaModel&&(identical(other.srcUrl, srcUrl) || other.srcUrl == srcUrl)&&(identical(other.altText, altText) || other.altText == altText));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MediaModel&&(identical(other.srcUrl, srcUrl) || other.srcUrl == srcUrl)&&(identical(other.thumbnailUrl, thumbnailUrl) || other.thumbnailUrl == thumbnailUrl)&&(identical(other.altText, altText) || other.altText == altText));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,srcUrl,altText);
+int get hashCode => Object.hash(runtimeType,srcUrl,thumbnailUrl,altText);
 
 @override
 String toString() {
-  return 'MediaModel(srcUrl: $srcUrl, altText: $altText)';
+  return 'MediaModel(srcUrl: $srcUrl, thumbnailUrl: $thumbnailUrl, altText: $altText)';
 }
 
 
@@ -637,7 +639,7 @@ abstract mixin class _$MediaModelCopyWith<$Res> implements $MediaModelCopyWith<$
   factory _$MediaModelCopyWith(_MediaModel value, $Res Function(_MediaModel) _then) = __$MediaModelCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'src_url') String srcUrl,@JsonKey(name: 'alt_text') String? altText
+@JsonKey(name: 'src_url', readValue: _readSrcUrl) String srcUrl,@JsonKey(name: 'thumbnail_url', readValue: _readThumbnailUrl) String? thumbnailUrl,@JsonKey(name: 'alt_text') String? altText
 });
 
 
@@ -654,10 +656,11 @@ class __$MediaModelCopyWithImpl<$Res>
 
 /// Create a copy of MediaModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? srcUrl = null,Object? altText = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? srcUrl = null,Object? thumbnailUrl = freezed,Object? altText = freezed,}) {
   return _then(_MediaModel(
 srcUrl: null == srcUrl ? _self.srcUrl : srcUrl // ignore: cast_nullable_to_non_nullable
-as String,altText: freezed == altText ? _self.altText : altText // ignore: cast_nullable_to_non_nullable
+as String,thumbnailUrl: freezed == thumbnailUrl ? _self.thumbnailUrl : thumbnailUrl // ignore: cast_nullable_to_non_nullable
+as String?,altText: freezed == altText ? _self.altText : altText // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }

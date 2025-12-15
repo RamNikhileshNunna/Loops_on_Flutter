@@ -13,41 +13,34 @@ class VideoActionsRepositoryImpl implements VideoActionsRepository {
 
   VideoActionsRepositoryImpl(this._apiClient);
 
-  @override
-  Future<bool> likeVideo(String videoId) async {
+  Future<bool> _postWithCsrf(String path, {dynamic data}) async {
     try {
-      final response = await _apiClient.post(
-        'api/v1/videos/$videoId/like',
-      );
-      return response.statusCode == 200 || response.statusCode == 204;
+      await _apiClient.ensureCsrfCookie();
+      final response = await _apiClient.post(path, data: data);
+      return response.statusCode == 200 ||
+          response.statusCode == 201 ||
+          response.statusCode == 204;
     } catch (e) {
       return false;
     }
+  }
+
+  @override
+  Future<bool> likeVideo(String videoId) async {
+    return _postWithCsrf('api/v1/videos/$videoId/like');
   }
 
   @override
   Future<bool> unlikeVideo(String videoId) async {
-    try {
-      final response = await _apiClient.post(
-        'api/v1/videos/$videoId/unlike',
-      );
-      return response.statusCode == 200 || response.statusCode == 204;
-    } catch (e) {
-      return false;
-    }
+    return _postWithCsrf('api/v1/videos/$videoId/unlike');
   }
 
   @override
   Future<bool> commentVideo(String videoId, String comment) async {
-    try {
-      final response = await _apiClient.post(
-        'api/v1/videos/$videoId/comments',
-        data: {'comment': comment},
-      );
-      return response.statusCode == 200 || response.statusCode == 201;
-    } catch (e) {
-      return false;
-    }
+    return _postWithCsrf(
+      'api/v1/videos/$videoId/comments',
+      data: {'comment': comment},
+    );
   }
 
   @override

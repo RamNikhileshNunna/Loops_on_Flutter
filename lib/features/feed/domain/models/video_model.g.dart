@@ -44,12 +44,17 @@ Map<String, dynamic> _$VideoModelToJson(_VideoModel instance) =>
     };
 
 _MediaModel _$MediaModelFromJson(Map<String, dynamic> json) => _MediaModel(
-  srcUrl: json['src_url'] as String,
-  altText: json['alt_text'] as String?,
-);
+      srcUrl: _readSrcUrl(json, 'src_url'),
+      thumbnailUrl: _readThumbnailUrl(json, 'thumbnail_url'),
+      altText: json['alt_text'] as String?,
+    );
 
 Map<String, dynamic> _$MediaModelToJson(_MediaModel instance) =>
-    <String, dynamic>{'src_url': instance.srcUrl, 'alt_text': instance.altText};
+    <String, dynamic>{
+      'src_url': instance.srcUrl,
+      'thumbnail_url': instance.thumbnailUrl,
+      'alt_text': instance.altText,
+    };
 
 _VideoPermissions _$VideoPermissionsFromJson(Map<String, dynamic> json) =>
     _VideoPermissions(canComment: json['can_comment'] as bool? ?? true);

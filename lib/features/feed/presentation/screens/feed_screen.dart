@@ -18,6 +18,8 @@ class _FeedScreenState extends ConsumerState<FeedScreen>
   final PageController _pageController = PageController();
   int _currentIndex = 0;
   late final TabController _tabController;
+  bool _retriedForYou = false;
+  bool _retriedFollowing = false;
 
   @override
   void initState() {
@@ -25,8 +27,8 @@ class _FeedScreenState extends ConsumerState<FeedScreen>
     _tabController = TabController(length: 2, vsync: this);
     // Ensure feed loads on first entry
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(feedControllerProvider.notifier).refresh();
-      ref.read(followingFeedControllerProvider.notifier).refresh();
+      _forYouNotifier().refresh();
+      _followingNotifier().refresh();
     });
     _tabController.addListener(() {
       setState(() {});
@@ -34,10 +36,16 @@ class _FeedScreenState extends ConsumerState<FeedScreen>
       if (_tabController.index == 1) {
         final following = ref.read(followingFeedControllerProvider);
         if (following.hasError || following.isLoading || following.value?.isNotEmpty == true) return;
-        ref.read(followingFeedControllerProvider.notifier).refresh();
+        _followingNotifier().refresh();
       }
     });
   }
+
+  FeedController _forYouNotifier() =>
+      ref.read(feedControllerProvider.notifier);
+
+  FollowingFeedController _followingNotifier() =>
+      ref.read(followingFeedControllerProvider.notifier);
 
   @override
   Widget build(BuildContext context) {
@@ -49,10 +57,12 @@ class _FeedScreenState extends ConsumerState<FeedScreen>
         ? ref.watch(feedControllerProvider)
         : ref.watch(followingFeedControllerProvider);
 
+    _maybeRetryIfEmpty(isForYou, feedState);
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: feedState.when(
-        data: (videos) => _buildFeedBody(context, videos, isForYou),
+        data: (videos) => _buildFeedBody(context, feedState, videos, isForYou),
         error: (err, stack) => Center(
           child: Text(
             'Error: $err',
@@ -66,13 +76,61 @@ class _FeedScreenState extends ConsumerState<FeedScreen>
     );
   }
 
-  Widget _buildFeedBody(BuildContext context, List videos, bool isForYou) {
+  void _maybeRetryIfEmpty(bool isForYou, AsyncValue<List> feedState) {
+    final hasData = feedState.asData?.value.isNotEmpty == true;
+    final alreadyRetried = isForYou ? _retriedForYou : _retriedFollowing;
+
+    if (hasData || feedState.isLoading || feedState.isRefreshing || alreadyRetried) {
+      return;
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (isForYou) {
+        _forYouNotifier().refresh();
+      } else {
+        _followingNotifier().refresh();
+      }
+    });
+
+    if (isForYou) {
+      _retriedForYou = true;
+    } else {
+      _retriedFollowing = true;
+    }
+  }
+
+  Widget _buildFeedBody(
+    BuildContext context,
+    AsyncValue<List> feedState,
+    List videos,
+    bool isForYou,
+  ) {
+    final isLoading = feedState.isLoading || feedState.isRefreshing;
+
     if (videos.isEmpty) {
-      return const Center(
-        child: Text(
-          'No videos found',
-          style: TextStyle(color: Colors.white),
-        ),
+      return Center(
+        child: isLoading
+            ? const CircularProgressIndicator(color: Colors.white)
+            : Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    'No videos found',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  const SizedBox(height: 12),
+                  ElevatedButton(
+                    onPressed: () async {
+                      if (isForYou) {
+                        await _forYouNotifier().refresh();
+                      } else {
+                        await _followingNotifier().refresh();
+                      }
+                    },
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
       );
     }
 
@@ -81,9 +139,9 @@ class _FeedScreenState extends ConsumerState<FeedScreen>
       color: Colors.white,
       onRefresh: () async {
         if (isForYou) {
-          await ref.read(feedControllerProvider.notifier).refresh();
+          await _forYouNotifier().refresh();
         } else {
-          await ref.read(followingFeedControllerProvider.notifier).refresh();
+          await _followingNotifier().refresh();
         }
       },
       child: Stack(

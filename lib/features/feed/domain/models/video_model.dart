@@ -31,12 +31,46 @@ abstract class VideoModel with _$VideoModel {
 @freezed
 abstract class MediaModel with _$MediaModel {
   const factory MediaModel({
-    @JsonKey(name: 'src_url') required String srcUrl,
+    @JsonKey(name: 'src_url', readValue: _readSrcUrl) required String srcUrl,
+    @JsonKey(name: 'thumbnail_url', readValue: _readThumbnailUrl) String?
+        thumbnailUrl,
     @JsonKey(name: 'alt_text') String? altText,
   }) = _MediaModel;
 
   factory MediaModel.fromJson(Map<String, dynamic> json) =>
       _$MediaModelFromJson(json);
+}
+
+String _readSrcUrl(Map json, String key) {
+  final candidates = [
+    json['src_url'],
+    json['src'],
+    json['url'],
+    json['video_url'],
+    json['file'],
+  ];
+  return candidates.firstWhere(
+    (value) => value != null && value.toString().isNotEmpty,
+    orElse: () => '',
+  ) as String;
+}
+
+String? _readThumbnailUrl(Map json, String key) {
+  final candidates = [
+    json['thumbnail_url'],
+    json['thumb_url'],
+    json['poster_url'],
+    json['preview_url'],
+    json['image_url'],
+    json['thumbnail'],
+  ];
+
+  final match = candidates.firstWhere(
+    (value) => value != null && value.toString().isNotEmpty,
+    orElse: () => null,
+  );
+
+  return match?.toString();
 }
 
 @freezed
